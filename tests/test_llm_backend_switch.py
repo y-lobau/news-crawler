@@ -6,13 +6,13 @@ from news_crowler.config import Settings
 from news_crowler.pipelines.daily import _build_llm_client
 
 
-def test_settings_from_env_defaults_to_ollama(monkeypatch):
+def test_settings_from_env_defaults_to_openclaw(monkeypatch):
     monkeypatch.setenv("NOTION_TOKEN", "stub-token")
     monkeypatch.delenv("LLM_BACKEND", raising=False)
 
     settings = Settings.from_env()
 
-    assert settings.llm_backend == "ollama"
+    assert settings.llm_backend == "openclaw"
 
 
 def test_settings_from_env_reads_cloud_backend(monkeypatch):
@@ -28,6 +28,20 @@ def test_settings_from_env_reads_cloud_backend(monkeypatch):
     assert settings.cloud_llm_base_url == "https://api.example.com/v1"
     assert settings.cloud_llm_model == "cloud-model"
     assert settings.cloud_llm_api_key == "key123"
+
+
+def test_build_llm_client_uses_openclaw_without_cloud_token(monkeypatch, tmp_path):
+    settings = Settings(
+        notion_token="stub-token",
+        data_dir=tmp_path / "data",
+        llm_backend="openclaw",
+        cloud_llm_api_key="",
+    )
+    sentinel = object()
+
+    monkeypatch.setattr("news_crowler.pipelines.daily.OpenClawLLMClient", lambda *_args, **_kwargs: sentinel)
+
+    assert _build_llm_client(settings) is sentinel
 
 
 def test_build_llm_client_uses_cloud_when_configured(monkeypatch, tmp_path):

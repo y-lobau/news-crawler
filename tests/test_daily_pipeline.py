@@ -57,7 +57,7 @@ def test_daily_runs_end_to_end_with_mocks(monkeypatch, tmp_path):
 
     assert result["metrics"]["sources_total"] == 1
     assert result["metrics"]["articles_summarized"] == 1
-    assert result["metrics"]["llm_backend"] == "ollama"
+    assert result["metrics"]["llm_backend"] == "openclaw"
     assert (tmp_path / "data" / "daily" / "2026-02-28" / "articles.json").exists()
     assert (tmp_path / "data" / "daily" / "2026-02-28" / "rejected_by_relevance.json").exists()
     assert (tmp_path / "data" / "seen_titles.json").exists()

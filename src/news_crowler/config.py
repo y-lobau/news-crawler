@@ -12,10 +12,11 @@ class Settings:
     notion_version: str = "2022-06-28"
     ollama_base_url: str = "http://127.0.0.1:11434"
     ollama_model: str = "qwen2.5:7b"
-    llm_backend: str = "ollama"
+    llm_backend: str = "openclaw"
     cloud_llm_base_url: str = "https://api.openai.com/v1"
     cloud_llm_model: str = ""
     cloud_llm_api_key: str = ""
+    openclaw_agent_id: str = "main"
     llm_timeout_seconds: int = 60
     data_dir: Path = Path("data")
     rss_max_items_per_source: int = 20
@@ -36,10 +37,11 @@ class Settings:
             notion_version=os.getenv("NOTION_VERSION", "2022-06-28").strip(),
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434").strip(),
             ollama_model=os.getenv("OLLAMA_MODEL", "qwen2.5:7b").strip(),
-            llm_backend=os.getenv("LLM_BACKEND", "ollama").strip().lower(),
+            llm_backend=os.getenv("LLM_BACKEND", "openclaw").strip().lower(),
             cloud_llm_base_url=os.getenv("CLOUD_LLM_BASE_URL", "https://api.openai.com/v1").strip(),
             cloud_llm_model=os.getenv("CLOUD_LLM_MODEL", "").strip(),
             cloud_llm_api_key=os.getenv("CLOUD_LLM_API_KEY", "").strip(),
+            openclaw_agent_id=os.getenv("OPENCLAW_AGENT_ID", "main").strip() or "main",
             llm_timeout_seconds=int(os.getenv("LLM_TIMEOUT_SECONDS", "60")),
             data_dir=Path(os.getenv("DATA_DIR", "data")).expanduser(),
             rss_max_items_per_source=int(os.getenv("RSS_MAX_ITEMS_PER_SOURCE", "20")),

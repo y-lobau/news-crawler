@@ -1,6 +1,6 @@
 # news-crowler MVP
 
-News crawler MVP with modular source adapters, Notion source config, configurable LLM backend (Ollama or cloud) for title relevance + summarization, and JSON-only outputs.
+News crawler MVP with modular source adapters, Notion source config, configurable LLM backend (OpenClaw default tokenless, Ollama, or cloud) for title relevance + summarization, and JSON-only outputs.
 
 ## Features
 
@@ -39,7 +39,8 @@ Optional:
 
 - `NOTION_DATABASE_ID` (default: `315c08c84b45804db552fe26dc6e2e6c`)
 - `NOTION_VERSION` (default: `2022-06-28`)
-- `LLM_BACKEND` (default: `ollama`, options: `ollama`, `cloud`)
+- `LLM_BACKEND` (default: `openclaw`, options: `openclaw`, `ollama`, `cloud`)
+- `OPENCLAW_AGENT_ID` (default: `main`, used when `LLM_BACKEND=openclaw`)
 - `OLLAMA_BASE_URL` (default: `http://127.0.0.1:11434`)
 - `OLLAMA_MODEL` (default: `qwen2.5:7b`)
 - `CLOUD_LLM_BASE_URL` (default: `https://api.openai.com/v1`, used when `LLM_BACKEND=cloud`)
@@ -53,13 +54,13 @@ Optional:
 
 ## Run commands
 
-Daily:
+Daily (default tokenless OpenClaw backend):
 
 ```bash
 PYTHONPATH=src python -m news_crowler.cli daily
 ```
 
-Daily with cloud LLM backend:
+Daily with cloud LLM backend (optional compatibility mode):
 
 ```bash
 export LLM_BACKEND=cloud
@@ -86,7 +87,7 @@ make weekly
 
 ### Preflight for live checks
 
-Validate live dependencies (Notion token/API + Ollama model):
+Validate live dependencies (Notion token/API + Ollama model, when Ollama checks are enabled):
 
 ```bash
 make preflight

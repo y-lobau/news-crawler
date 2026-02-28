@@ -6,6 +6,7 @@ from news_crowler.adapters.base import SourceAdapter
 from news_crowler.adapters.google_news import GoogleNewsAdapter
 from news_crowler.cloud_llm import CloudLLMClient
 from news_crowler.config import Settings
+from news_crowler.openclaw_llm import OpenClawLLMClient
 from news_crowler.content import extract_fulltext
 from news_crowler.models import ProcessedArticle, SourceConfig
 from news_crowler.notion_sources import NotionSourcesClient
@@ -31,6 +32,11 @@ def _select_adapter(adapters: list[SourceAdapter], source: SourceConfig) -> Sour
 
 
 def _build_llm_client(settings: Settings):
+    if settings.llm_backend == "openclaw":
+        return OpenClawLLMClient(
+            agent_id=settings.openclaw_agent_id,
+            timeout_seconds=settings.llm_timeout_seconds,
+        )
     if settings.llm_backend == "ollama":
         return OllamaClient(settings.ollama_base_url, settings.ollama_model, timeout_seconds=settings.llm_timeout_seconds)
     if settings.llm_backend == "cloud":
