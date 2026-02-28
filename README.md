@@ -69,17 +69,54 @@ make weekly
 
 ## Tests
 
-Run only E2E tests (deterministic, no live Notion/Ollama/network):
+### Preflight for live checks
+
+Validate live dependencies (Notion token/API + Ollama model):
+
+```bash
+make preflight
+```
+
+Skip Ollama check (weekly-only scenarios):
+
+```bash
+PYTHONPATH=src python -m news_crowler.cli preflight --skip-ollama
+```
+
+### Test targets
+
+Run default suite (unit + mocked integration, offline deterministic):
+
+```bash
+make test
+```
+
+Run mocked integration tests only (offline deterministic):
+
+```bash
+make test-mocked
+```
+
+Run live integration tests only (real external dependencies required):
+
+```bash
+make test-live
+```
+
+Backward-compatible alias:
 
 ```bash
 make test-e2e
 ```
 
-Run the full suite (includes unit + E2E tests):
+### Expectation matrix
 
-```bash
-make test
-```
+| Command | Requires internet | Requires `NOTION_TOKEN` | Requires live Notion API | Requires Ollama + model | Expected behavior |
+|---|---|---|---|---|---|
+| `make test` | No | No | No | No | Should pass offline; includes unit + mocked integration |
+| `make test-mocked` | No | No | No | No | Should pass offline; deterministic stubbed pipeline checks |
+| `make test-live` | Yes | Yes | Yes | Yes | Fails clearly if prerequisites missing; otherwise validates real daily+weekly flow |
+| `make preflight` | Yes | Yes | Yes | Yes (unless `--skip-ollama`) | Reports actionable diagnostics and exits non-zero on failures |
 
 ## Output structure
 

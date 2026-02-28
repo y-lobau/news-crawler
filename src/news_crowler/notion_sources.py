@@ -57,6 +57,13 @@ class NotionSourcesClient:
 
         return out
 
+    def _first_text(self, props: dict, *names: str) -> str:
+        for name in names:
+            value = self._property_text(props.get(name))
+            if value:
+                return value
+        return ""
+
     def _property_text(self, prop: dict | None) -> str:
         if not prop:
             return ""

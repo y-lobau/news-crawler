@@ -14,8 +14,8 @@ def _create_daily_articles(data_dir: Path, day: date, rows: list[dict]) -> None:
     write_json(data_dir / "daily" / day.isoformat() / "metrics.json", {"run_date": day.isoformat()})
 
 
-@pytest.mark.e2e
-def test_weekly_job_e2e_aggregates_digest_and_cleans_old_daily_json(tmp_path):
+@pytest.mark.mocked_integration
+def test_weekly_job_mocked_integration_aggregates_digest_and_cleans_old_daily_json(tmp_path):
     data_dir = tmp_path / "data"
     run_date = date(2026, 2, 28)
 
@@ -64,8 +64,8 @@ def test_weekly_job_e2e_aggregates_digest_and_cleans_old_daily_json(tmp_path):
     assert len(result["metrics"]["missing_days"]) == 4
 
 
-@pytest.mark.e2e
-def test_weekly_job_e2e_skips_cleanup_when_success_flag_check_fails(monkeypatch, tmp_path):
+@pytest.mark.mocked_integration
+def test_weekly_job_mocked_integration_skips_cleanup_when_success_flag_check_fails(monkeypatch, tmp_path):
     data_dir = tmp_path / "data"
     run_date = date(2026, 2, 28)
 

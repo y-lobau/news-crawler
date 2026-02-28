@@ -69,8 +69,8 @@ class _FakeOllamaClient:
         return f"Summary for {title}: {fulltext[:12]}"
 
 
-@pytest.mark.e2e
-def test_daily_job_e2e_with_deterministic_stubs(monkeypatch, tmp_path):
+@pytest.mark.mocked_integration
+def test_daily_job_mocked_integration_with_deterministic_stubs(monkeypatch, tmp_path):
     data_dir = tmp_path / "data"
     settings = Settings(notion_token="stub-token", data_dir=data_dir)
     run_date = date(2026, 2, 28)
