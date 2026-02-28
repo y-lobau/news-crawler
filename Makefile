@@ -1,4 +1,5 @@
-PYTHON ?= python3
+VENV_PYTHON := $(firstword $(wildcard .venv/bin/python3 .venv/bin/python))
+PYTHON ?= $(if $(VENV_PYTHON),$(VENV_PYTHON),python3)
 
 .PHONY: install test daily weekly
 
