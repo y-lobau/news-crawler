@@ -67,6 +67,20 @@ make daily
 make weekly
 ```
 
+## Tests
+
+Run only E2E tests (deterministic, no live Notion/Ollama/network):
+
+```bash
+make test-e2e
+```
+
+Run the full suite (includes unit + E2E tests):
+
+```bash
+make test
+```
+
 ## Output structure
 
 - `data/seen_titles.json`

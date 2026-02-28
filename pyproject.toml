@@ -24,3 +24,6 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+markers = [
+  "e2e: end-to-end tests for daily/weekly jobs with local stubs",
+]

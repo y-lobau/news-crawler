@@ -1,13 +1,16 @@
 VENV_PYTHON := $(firstword $(wildcard .venv/bin/python3 .venv/bin/python))
 PYTHON ?= $(if $(VENV_PYTHON),$(VENV_PYTHON),python3)
 
-.PHONY: install test daily weekly
+.PHONY: install test test-e2e daily weekly
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
 
 test:
 	PYTHONPATH=src $(PYTHON) -m pytest -q
+
+test-e2e:
+	PYTHONPATH=src $(PYTHON) -m pytest -q -m e2e
 
 daily:
 	PYTHONPATH=src $(PYTHON) -m news_crowler.cli daily
