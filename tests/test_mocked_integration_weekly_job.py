@@ -42,7 +42,7 @@ def test_weekly_job_mocked_integration_aggregates_digest_and_cleans_old_daily_js
     write_json(old_day_dir / "articles.json", [{"summary": "old"}])
     write_json(old_day_dir / "metrics.json", {"old": True})
 
-    settings = Settings(notion_token="stub-token", data_dir=data_dir, weekly_retention_days=30)
+    settings = Settings(notion_token="stub-token", data_dir=data_dir, weekly_retention_days=30, first_run_window_days=7)
     result = run_weekly(settings, run_date=run_date)
 
     digest_path = data_dir / "weekly" / "2026-02-28" / "digest_input.json"
@@ -79,7 +79,7 @@ def test_weekly_job_mocked_integration_skips_cleanup_when_success_flag_check_fai
     write_json(old_day_dir / "articles.json", [{"summary": "old"}])
     write_json(old_day_dir / "metrics.json", {"old": True})
 
-    settings = Settings(notion_token="stub-token", data_dir=data_dir, weekly_retention_days=30)
+    settings = Settings(notion_token="stub-token", data_dir=data_dir, weekly_retention_days=30, first_run_window_days=7)
     success_path = data_dir / "weekly" / "2026-02-28" / "SUCCESS.flag"
 
     original_exists = Path.exists

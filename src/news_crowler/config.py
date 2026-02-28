@@ -16,6 +16,8 @@ class Settings:
     rss_max_items_per_source: int = 20
     http_timeout_seconds: int = 20
     weekly_retention_days: int = 30
+    weekly_window_days: int = 7
+    first_run_window_days: int = 14
 
     @staticmethod
     def from_env() -> "Settings":
@@ -33,4 +35,6 @@ class Settings:
             rss_max_items_per_source=int(os.getenv("RSS_MAX_ITEMS_PER_SOURCE", "20")),
             http_timeout_seconds=int(os.getenv("HTTP_TIMEOUT_SECONDS", "20")),
             weekly_retention_days=int(os.getenv("WEEKLY_RETENTION_DAYS", "30")),
+            weekly_window_days=int(os.getenv("WEEKLY_WINDOW_DAYS", "7")),
+            first_run_window_days=int(os.getenv("FIRST_RUN_WINDOW_DAYS", "14")),
         )

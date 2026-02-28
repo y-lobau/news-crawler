@@ -6,6 +6,24 @@ from news_crowler.config import Settings
 from news_crowler.storage import daily_dir, read_json, weekly_dir, write_json
 
 
+def _has_previous_weekly_success(data_dir, run_date: date) -> bool:
+    weekly_root = data_dir / "weekly"
+    if not weekly_root.exists():
+        return False
+    for day_dir in weekly_root.iterdir():
+        if not day_dir.is_dir():
+            continue
+        try:
+            day = date.fromisoformat(day_dir.name)
+        except ValueError:
+            continue
+        if day >= run_date:
+            continue
+        if (day_dir / "SUCCESS.flag").exists():
+            return True
+    return False
+
+
 def _iter_last_days(run_date: date, days: int) -> list[date]:
     return [run_date - timedelta(days=offset) for offset in range(days)]
 
@@ -39,7 +57,9 @@ def run_weekly(settings: Settings, run_date: date | None = None) -> dict:
     run_date = run_date or date.today()
     started_at = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
 
-    last_days = _iter_last_days(run_date, 7)
+    has_history = _has_previous_weekly_success(settings.data_dir, run_date)
+    window_days = settings.weekly_window_days if has_history else settings.first_run_window_days
+    last_days = _iter_last_days(run_date, window_days)
     digest_items: list[dict] = []
     missing_days: list[str] = []
 
@@ -68,7 +88,7 @@ def run_weekly(settings: Settings, run_date: date | None = None) -> dict:
     digest_input = {
         "run_date": run_date.isoformat(),
         "generated_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
-        "window_days": 7,
+        "window_days": window_days,
         "items": digest_items,
     }
     write_json(week_dir / "digest_input.json", digest_input)
@@ -77,7 +97,7 @@ def run_weekly(settings: Settings, run_date: date | None = None) -> dict:
         "run_date": run_date.isoformat(),
         "started_at": started_at,
         "finished_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
-        "window_days": 7,
+        "window_days": window_days,
         "items_total": len(digest_items),
         "missing_days": missing_days,
         "cleanup_removed_files": 0,
