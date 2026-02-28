@@ -1,6 +1,6 @@
 # news-crowler MVP
 
-News crawler MVP with modular source adapters, Notion source config, Ollama-based title relevance + summarization, and JSON-only outputs.
+News crawler MVP with modular source adapters, Notion source config, configurable LLM backend (Ollama or cloud) for title relevance + summarization, and JSON-only outputs.
 
 ## Features
 
@@ -11,10 +11,10 @@ News crawler MVP with modular source adapters, Notion source config, Ollama-base
   1. Fetch sources from Notion
   2. Ingest RSS via adapters
   3. Deduplicate via JSON seen store
-  4. Title-only relevance check using local Ollama `qwen2.5:7b`
+  4. Title-only relevance check via configured LLM backend
   5. Fulltext extraction from article URL
   6. Short summary generation
-  7. Write daily JSON outputs + metrics JSON
+  7. Write daily JSON outputs + metrics JSON + rejected relevance debug artifact
 - Weekly pipeline:
   1. Aggregate last 7 days summaries
   2. Build `digest_input.json`
@@ -39,8 +39,13 @@ Optional:
 
 - `NOTION_DATABASE_ID` (default: `315c08c84b45804db552fe26dc6e2e6c`)
 - `NOTION_VERSION` (default: `2022-06-28`)
+- `LLM_BACKEND` (default: `ollama`, options: `ollama`, `cloud`)
 - `OLLAMA_BASE_URL` (default: `http://127.0.0.1:11434`)
 - `OLLAMA_MODEL` (default: `qwen2.5:7b`)
+- `CLOUD_LLM_BASE_URL` (default: `https://api.openai.com/v1`, used when `LLM_BACKEND=cloud`)
+- `CLOUD_LLM_MODEL` (required when `LLM_BACKEND=cloud`)
+- `CLOUD_LLM_API_KEY` (required when `LLM_BACKEND=cloud`)
+- `LLM_TIMEOUT_SECONDS` (default: `60`)
 - `DATA_DIR` (default: `data`)
 - `RSS_MAX_ITEMS_PER_SOURCE` (default: `20`)
 - `HTTP_TIMEOUT_SECONDS` (default: `20`)
@@ -51,6 +56,16 @@ Optional:
 Daily:
 
 ```bash
+PYTHONPATH=src python -m news_crowler.cli daily
+```
+
+Daily with cloud LLM backend:
+
+```bash
+export LLM_BACKEND=cloud
+export CLOUD_LLM_BASE_URL=https://api.openai.com/v1
+export CLOUD_LLM_MODEL=gpt-4.1-mini
+export CLOUD_LLM_API_KEY=sk-...
 PYTHONPATH=src python -m news_crowler.cli daily
 ```
 
@@ -123,6 +138,7 @@ make test-e2e
 - `data/seen_titles.json`
 - `data/daily/YYYY-MM-DD/articles.json`
 - `data/daily/YYYY-MM-DD/metrics.json`
+- `data/daily/YYYY-MM-DD/rejected_by_relevance.json`
 - `data/weekly/YYYY-MM-DD/digest_input.json`
 - `data/weekly/YYYY-MM-DD/metrics.json`
 - `data/weekly/YYYY-MM-DD/SUCCESS.flag`

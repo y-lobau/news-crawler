@@ -3,7 +3,8 @@
 | ID | Type | Scenario | Expected Result |
 |---|---|---|---|
 | TC-UNIT-001 | unit | Core adapters/content/storage helpers | Deterministic behavior without external services |
-| TC-MOCKED-DAILY-001 | mocked_integration | Daily pipeline with fake Notion/adapter/Ollama + mixed article outcomes | Metrics and artifacts reflect seen filtering, relevance decisions, fulltext failures, and summaries |
+| TC-MOCKED-DAILY-001 | mocked_integration | Daily pipeline with fake Notion/adapter/LLM + mixed article outcomes | Metrics and artifacts reflect seen filtering, relevance decisions, fulltext failures, summaries, and rejected-by-relevance debug output |
+| TC-UNIT-LLM-001 | unit | Daily pipeline backend selection when `LLM_BACKEND` is unset/`ollama`/`cloud` | Default uses Ollama, cloud uses cloud client, and invalid backend fails fast |
 | TC-MOCKED-WEEKLY-001 | mocked_integration | Weekly pipeline with local daily fixtures and old retained files | Digest contains only summarized items, success flag exists, old JSON cleaned after success |
 | TC-MOCKED-WEEKLY-002 | mocked_integration | Weekly cleanup guard when success check is forced false | Cleanup is skipped and old files stay intact |
 | TC-PREFLIGHT-001 | unit | Preflight with missing token and unreachable Ollama | Fails with actionable diagnostics for env and service reachability |
@@ -16,6 +17,7 @@
 | Test File | Covered Cases |
 |---|---|
 | `tests/test_daily_pipeline.py` | TC-UNIT-001 |
+| `tests/test_llm_backend_switch.py` | TC-UNIT-LLM-001 |
 | `tests/test_weekly_pipeline.py` | TC-UNIT-001 |
 | `tests/test_google_news_adapter.py` | TC-UNIT-001 |
 | `tests/test_mocked_integration_daily_job.py` | TC-MOCKED-DAILY-001 |

@@ -4,6 +4,7 @@ from datetime import UTC, date, datetime
 
 from news_crowler.adapters.base import SourceAdapter
 from news_crowler.adapters.google_news import GoogleNewsAdapter
+from news_crowler.cloud_llm import CloudLLMClient
 from news_crowler.config import Settings
 from news_crowler.content import extract_fulltext
 from news_crowler.models import ProcessedArticle, SourceConfig
@@ -29,6 +30,23 @@ def _select_adapter(adapters: list[SourceAdapter], source: SourceConfig) -> Sour
     return None
 
 
+def _build_llm_client(settings: Settings):
+    if settings.llm_backend == "ollama":
+        return OllamaClient(settings.ollama_base_url, settings.ollama_model, timeout_seconds=settings.llm_timeout_seconds)
+    if settings.llm_backend == "cloud":
+        if not settings.cloud_llm_model:
+            raise ValueError("CLOUD_LLM_MODEL is required when LLM_BACKEND=cloud")
+        if not settings.cloud_llm_api_key:
+            raise ValueError("CLOUD_LLM_API_KEY is required when LLM_BACKEND=cloud")
+        return CloudLLMClient(
+            settings.cloud_llm_base_url,
+            settings.cloud_llm_model,
+            settings.cloud_llm_api_key,
+            timeout_seconds=settings.llm_timeout_seconds,
+        )
+    raise ValueError(f"Unsupported LLM_BACKEND: {settings.llm_backend}")
+
+
 def run_daily(settings: Settings, run_date: date | None = None) -> dict:
     run_date = run_date or date.today()
     started_at = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
@@ -38,7 +56,7 @@ def run_daily(settings: Settings, run_date: date | None = None) -> dict:
         database_id=settings.notion_database_id,
         notion_version=settings.notion_version,
     )
-    ollama = OllamaClient(settings.ollama_base_url, settings.ollama_model)
+    llm = _build_llm_client(settings)
     adapters = _adapter_registry(settings)
 
     seen_path = settings.data_dir / "seen_titles.json"
@@ -47,17 +65,21 @@ def run_daily(settings: Settings, run_date: date | None = None) -> dict:
     metrics = {
         "run_date": run_date.isoformat(),
         "started_at": started_at,
+        "llm_backend": settings.llm_backend,
+        "llm_model": getattr(llm, "model", ""),
         "sources_total": 0,
         "articles_fetched": 0,
         "articles_skipped_seen": 0,
         "articles_relevance_positive": 0,
         "articles_relevance_negative": 0,
+        "articles_rejected_by_relevance": 0,
         "articles_fulltext_failed": 0,
         "articles_summarized": 0,
         "errors": [],
     }
 
     out_articles: list[ProcessedArticle] = []
+    rejected_by_relevance: list[dict] = []
 
     sources = sources_client.fetch_sources()
     metrics["sources_total"] = len(sources)
@@ -84,14 +106,40 @@ def run_daily(settings: Settings, run_date: date | None = None) -> dict:
             mark_seen(seen_data, raw.title)
 
             try:
-                relevant, _reason = ollama.is_title_relevant(raw.title, source.title_filter_prompt)
+                relevant, reason = llm.is_title_relevant(raw.title, source.title_filter_prompt)
             except Exception as exc:  # noqa: BLE001
                 metrics["errors"].append(f"Relevance failed for '{raw.title}': {exc}")
                 metrics["articles_relevance_negative"] += 1
+                metrics["articles_rejected_by_relevance"] += 1
+                rejected_by_relevance.append(
+                    {
+                        "title": raw.title,
+                        "url": raw.url,
+                        "category": raw.source_category,
+                        "reason": "relevance_error",
+                        "decision": None,
+                        "details": str(exc),
+                        "llm_backend": settings.llm_backend,
+                        "llm_model": getattr(llm, "model", ""),
+                    }
+                )
                 continue
 
             if not relevant:
                 metrics["articles_relevance_negative"] += 1
+                metrics["articles_rejected_by_relevance"] += 1
+                rejected_by_relevance.append(
+                    {
+                        "title": raw.title,
+                        "url": raw.url,
+                        "category": raw.source_category,
+                        "reason": "not_relevant",
+                        "decision": reason or None,
+                        "details": None,
+                        "llm_backend": settings.llm_backend,
+                        "llm_model": getattr(llm, "model", ""),
+                    }
+                )
                 continue
 
             metrics["articles_relevance_positive"] += 1
@@ -108,7 +156,7 @@ def run_daily(settings: Settings, run_date: date | None = None) -> dict:
                 continue
 
             try:
-                summary = ollama.summarize(raw.title, fulltext)
+                summary = llm.summarize(raw.title, fulltext)
             except Exception as exc:  # noqa: BLE001
                 metrics["errors"].append(f"Summary failed for '{raw.title}': {exc}")
                 continue
@@ -130,6 +178,7 @@ def run_daily(settings: Settings, run_date: date | None = None) -> dict:
 
     day_dir = daily_dir(settings.data_dir, run_date)
     write_json(day_dir / "articles.json", [a.to_dict() for a in out_articles])
+    write_json(day_dir / "rejected_by_relevance.json", rejected_by_relevance)
 
     metrics["finished_at"] = datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z")
     write_json(day_dir / "metrics.json", metrics)

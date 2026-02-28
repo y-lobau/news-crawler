@@ -96,8 +96,8 @@ def test_daily_job_mocked_integration_with_deterministic_stubs(monkeypatch, tmp_
         lambda _settings: [_FakeAdapter()],
     )
     monkeypatch.setattr(
-        "news_crowler.pipelines.daily.OllamaClient",
-        lambda *_args, **_kwargs: _FakeOllamaClient(),
+        "news_crowler.pipelines.daily._build_llm_client",
+        lambda _settings: _FakeOllamaClient(),
     )
 
     def _fake_extract_fulltext(url: str, timeout_seconds: int = 20) -> str:
@@ -113,10 +113,12 @@ def test_daily_job_mocked_integration_with_deterministic_stubs(monkeypatch, tmp_
 
     articles_path = data_dir / "daily" / "2026-02-28" / "articles.json"
     metrics_path = data_dir / "daily" / "2026-02-28" / "metrics.json"
+    rejected_path = data_dir / "daily" / "2026-02-28" / "rejected_by_relevance.json"
     seen_path = data_dir / "seen_titles.json"
 
     assert articles_path.exists()
     assert metrics_path.exists()
+    assert rejected_path.exists()
     assert seen_path.exists()
 
     metrics = result["metrics"]
@@ -125,6 +127,7 @@ def test_daily_job_mocked_integration_with_deterministic_stubs(monkeypatch, tmp_
     assert metrics["articles_skipped_seen"] == 1
     assert metrics["articles_relevance_positive"] == 2
     assert metrics["articles_relevance_negative"] == 1
+    assert metrics["articles_rejected_by_relevance"] == 1
     assert metrics["articles_fulltext_failed"] == 1
     assert metrics["articles_summarized"] == 1
     assert len(metrics["errors"]) == 1
@@ -134,6 +137,13 @@ def test_daily_job_mocked_integration_with_deterministic_stubs(monkeypatch, tmp_
     assert len(articles) == 1
     assert articles[0]["title"] == "Relevant and good"
     assert articles[0]["summary"].startswith("Summary for Relevant and good")
+
+    rejected = json.loads(rejected_path.read_text(encoding="utf-8"))
+    assert len(rejected) == 1
+    assert rejected[0]["title"] == "Irrelevant title"
+    assert rejected[0]["url"] == "https://news.example.com/irrelevant"
+    assert rejected[0]["category"] == "tech"
+    assert rejected[0]["decision"] == "NOT_RELEVANT"
 
     seen_items = json.loads(seen_path.read_text(encoding="utf-8"))["items"]
     assert len(seen_items) == 4

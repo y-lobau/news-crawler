@@ -4,12 +4,12 @@
 
 The system provides two production pipelines and three test modes:
 
-- Daily pipeline: fetches sources from Notion, ingests RSS, evaluates relevance with Ollama, extracts fulltext, summarizes, and writes daily JSON outputs.
+- Daily pipeline: fetches sources from Notion, ingests RSS, evaluates relevance with a configured LLM backend (`ollama` or `cloud`), extracts fulltext, summarizes, writes daily JSON outputs, and writes relevance-rejection debug artifacts.
 - Weekly pipeline: aggregates daily summaries for the previous 7 days, writes weekly digest inputs/metrics, writes success flag, and cleans old daily JSON after success.
 - Test modes:
   - Unit tests: local-only, deterministic.
   - Mocked integration tests: pipeline-level tests with stubs/mocks and no live dependencies.
-  - Live integration tests: real checks against live Notion + Ollama and fail if prerequisites are missing/unreachable.
+- Live integration tests: real checks against live Notion + configured LLM backend and fail if prerequisites are missing/unreachable.
 
 ## Live Preflight
 
