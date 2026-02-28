@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+.pytest_cache/
+*.pyc
+data/daily/
+data/weekly/
+data/seen_titles.json
