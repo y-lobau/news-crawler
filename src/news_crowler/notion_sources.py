@@ -36,9 +36,11 @@ class NotionSourcesClient:
 
             for row in data.get("results", []):
                 props = row.get("properties", {})
-                category = self._property_text(props.get("category"))
-                source_url = self._property_text(props.get("source URL"))
-                title_filter_prompt = self._property_text(props.get("title filter prompt"))
+
+                # Support canonical names and short aliases used in the current DB.
+                category = self._first_text(props, "category", "topic")
+                source_url = self._first_text(props, "source URL", "url")
+                title_filter_prompt = self._first_text(props, "title filter prompt", "prompt")
 
                 if source_url:
                     out.append(

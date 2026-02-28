@@ -6,7 +6,7 @@ News crawler MVP with modular source adapters, Notion source config, Ollama-base
 
 - Modular adapter architecture (`src/news_crowler/adapters`)
 - Implemented adapter: Google News RSS (`google_news`)
-- Source discovery from Notion database/page ID `314c08c84b4580509766d7ccb641dc38`
+- Source discovery from Notion database/page ID `315c08c84b45804db552fe26dc6e2e6c`
 - Daily pipeline:
   1. Fetch sources from Notion
   2. Ingest RSS via adapters
@@ -37,7 +37,7 @@ Required:
 
 Optional:
 
-- `NOTION_DATABASE_ID` (default: `314c08c84b4580509766d7ccb641dc38`)
+- `NOTION_DATABASE_ID` (default: `315c08c84b45804db552fe26dc6e2e6c`)
 - `NOTION_VERSION` (default: `2022-06-28`)
 - `OLLAMA_BASE_URL` (default: `http://127.0.0.1:11434`)
 - `OLLAMA_MODEL` (default: `qwen2.5:7b`)
